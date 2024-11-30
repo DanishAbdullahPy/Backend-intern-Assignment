@@ -17,7 +17,7 @@ app.use(express.json());
 // Enable CORS
 app.use(
     cors({
-        origin: 'http://localhost:3000', // Adjust based on your frontend's URL
+        origin: process.env.FRONTEND_URL || 'http://localhost:3000', // Use environment variable for flexibility
         credentials: true,
     })
 );
@@ -29,7 +29,7 @@ app.use(
         resave: false,
         saveUninitialized: false,
         cookie: {
-            secure: false, // Set to true if using HTTPS
+            secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
             httpOnly: true,
             maxAge: 1000 * 60 * 60 * 24, // 1 day
         },
@@ -43,8 +43,14 @@ app.use(passport.session());
 // Passport configuration
 require('./src/config/passportConfig');
 
-// Database connection
+// Connect to the database
 connectDB();
+
+// Log each incoming request (for development/debugging)
+app.use((req, res, next) => {
+    console.log(`${req.method} ${req.originalUrl}`);
+    next();
+});
 
 // Routes
 app.use('/api/auth', require('./src/routes/authRoutes'));
@@ -67,6 +73,8 @@ app.use((err, req, res, next) => {
     res.status(500).json({ message: 'Internal Server Error', error: err.message });
 });
 
-// Start Server
+// Start the server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+    console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+});

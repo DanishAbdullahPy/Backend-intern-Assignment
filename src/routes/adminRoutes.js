@@ -4,6 +4,12 @@ const { getAssignments, acceptAssignment, rejectAssignment } = require('../contr
 const { protect } = require('../middleware/authMiddleware');
 const { role } = require('../middleware/roleMiddleware');
 
+// Middleware to log requests (for debugging)
+router.use((req, res, next) => {
+    console.log(`Admin Route Accessed: ${req.method} ${req.originalUrl}`);
+    next();
+});
+
 // @route   GET /api/admin/assignments
 // @desc    Get assignments tagged to admin
 // @access  Private (Admin)
@@ -18,5 +24,10 @@ router.post('/assignments/:id/accept', protect, role(['Admin']), acceptAssignmen
 // @desc    Reject an assignment
 // @access  Private (Admin)
 router.post('/assignments/:id/reject', protect, role(['Admin']), rejectAssignment);
+
+// Test Route
+router.post('/assignments/test', (req, res) => {
+    res.status(200).json({ message: 'Test route is working' });
+});
 
 module.exports = router;
